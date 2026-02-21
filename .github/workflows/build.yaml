@@ -32,7 +32,7 @@ jobs:
           name: dist-pure
           path: dist/
 
-  # Build platform wheels with the shared library bundled
+  # Build platform wheels with the shared library bundled (per platform × Python version)
   platform-wheels:
     runs-on: ubuntu-latest
     strategy:
@@ -42,25 +42,70 @@ jobs:
           - platform: manylinux_2_17_x86_64
             artifact: libchitin-x86_64-linux.so
             lib_name: libchitin.so
+            python-version: '3.11'
+          - platform: manylinux_2_17_x86_64
+            artifact: libchitin-x86_64-linux.so
+            lib_name: libchitin.so
+            python-version: '3.12'
+          - platform: manylinux_2_17_x86_64
+            artifact: libchitin-x86_64-linux.so
+            lib_name: libchitin.so
+            python-version: '3.13'
           - platform: manylinux_2_17_aarch64
             artifact: libchitin-aarch64-linux.so
             lib_name: libchitin.so
+            python-version: '3.11'
+          - platform: manylinux_2_17_aarch64
+            artifact: libchitin-aarch64-linux.so
+            lib_name: libchitin.so
+            python-version: '3.12'
+          - platform: manylinux_2_17_aarch64
+            artifact: libchitin-aarch64-linux.so
+            lib_name: libchitin.so
+            python-version: '3.13'
           - platform: macosx_13_0_x86_64
             artifact: libchitin-x86_64-macos.dylib
             lib_name: libchitin.dylib
+            python-version: '3.11'
+          - platform: macosx_13_0_x86_64
+            artifact: libchitin-x86_64-macos.dylib
+            lib_name: libchitin.dylib
+            python-version: '3.12'
+          - platform: macosx_13_0_x86_64
+            artifact: libchitin-x86_64-macos.dylib
+            lib_name: libchitin.dylib
+            python-version: '3.13'
           - platform: macosx_14_0_arm64
             artifact: libchitin-aarch64-macos.dylib
             lib_name: libchitin.dylib
+            python-version: '3.11'
+          - platform: macosx_14_0_arm64
+            artifact: libchitin-aarch64-macos.dylib
+            lib_name: libchitin.dylib
+            python-version: '3.12'
+          - platform: macosx_14_0_arm64
+            artifact: libchitin-aarch64-macos.dylib
+            lib_name: libchitin.dylib
+            python-version: '3.13'
           - platform: win_amd64
             artifact: chitin-x86_64-windows.dll
             lib_name: chitin.dll
+            python-version: '3.11'
+          - platform: win_amd64
+            artifact: chitin-x86_64-windows.dll
+            lib_name: chitin.dll
+            python-version: '3.12'
+          - platform: win_amd64
+            artifact: chitin-x86_64-windows.dll
+            lib_name: chitin.dll
+            python-version: '3.13'
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
       - name: Resolve engine version
         id: version
@@ -92,7 +137,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.platform }}
+          name: dist-${{ matrix.platform }}-py${{ matrix.python-version }}
           path: dist/*.whl
 
   release:
