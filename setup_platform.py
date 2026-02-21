@@ -13,7 +13,7 @@ class PlatformDistribution(Distribution):
 
 setup(
     name="chitin-engine-lib",
-    version="0.1.0",
+    version="0.1.1",
     description="Python bindings for the Chitin security engine",
     license="Apache-2.0",
     python_requires=">=3.11",
