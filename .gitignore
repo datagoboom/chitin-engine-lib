@@ -1,0 +1,22 @@
+# Virtual env and install metadata
+.venv/
+venv/
+*.egg-info/
+*.egg
+
+# Build artifacts
+build/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Bundled shared libraries (downloaded by CI; never commit)
+chitin/_lib/*.so
+chitin/_lib/*.dylib
+chitin/_lib/*.dll
