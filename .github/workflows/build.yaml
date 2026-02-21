@@ -101,6 +101,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - uses: actions/download-artifact@v4
@@ -111,6 +112,8 @@ jobs:
         run: |
           mkdir -p release-assets
           find artifacts/ -name '*.whl' -o -name '*.tar.gz' | xargs -I{} cp {} release-assets/
+          echo "Contents of release-assets/ (all go to GitHub Release + PyPI):"
+          ls -la release-assets/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
