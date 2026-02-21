@@ -1,1 +1,1 @@
-# Chiting Engine Library
+# Chitin Engine Library
