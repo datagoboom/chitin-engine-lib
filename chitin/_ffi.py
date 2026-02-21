@@ -96,6 +96,10 @@ class _ChitinFFI:
         ]
         lib.chitin_is_traced.restype = c_int32
 
+        # chitin_status_t chitin_set_label(engine, event_id, label, label_len);
+        lib.chitin_set_label.argtypes = [c_void_p, c_uint64, c_char_p, c_size_t]
+        lib.chitin_set_label.restype = c_int32
+
         # chitin_status_t chitin_explain(...);
         lib.chitin_explain.argtypes = [
             c_void_p,
@@ -261,6 +265,12 @@ class _ChitinFFI:
         if st != CHITIN_OK:
             raise ChitinError(st, self._last_error())
         return out_result.value != 0
+
+    def set_label(self, engine: c_void_p, event_id: int, label: str) -> None:
+        label_buf, label_len = _to_buf(label)
+        st = self._lib.chitin_set_label(engine, c_uint64(event_id), label_buf, label_len)
+        if st != CHITIN_OK:
+            raise ChitinError(st, self._last_error())
 
     def explain(self, engine: c_void_p, event_id: int) -> ExplainResult:
         out_json = c_char_p()

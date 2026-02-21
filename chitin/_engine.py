@@ -96,6 +96,14 @@ class Engine:
             return self._ffi.is_traced(self._handle, event_id, label)
         return self._http.is_traced(event_id, label)
 
+    def set_label(self, event_id: int, label: str) -> None:
+        """Set a trace label on an event and propagate downstream."""
+        self._ensure_open()
+        if self._backend == "ffi":
+            self._ffi.set_label(self._handle, event_id, label)
+        else:
+            self._http.set_label(event_id, label)
+
     def explain(self, event_id: int) -> ExplainResult:
         """Get trace chain and explanation for an event."""
         self._ensure_open()

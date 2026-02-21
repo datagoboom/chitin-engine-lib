@@ -112,6 +112,9 @@ class _ChitinHTTP:
             )
         return bool(out.get("traced", False))
 
+    def set_label(self, event_id: int, label: str) -> None:
+        self._post("/set_label", {"event_id": event_id, "label": label})
+
     def explain(self, event_id: int) -> ExplainResult:
         out = self._post("/explain", {"event_id": event_id})
         status = out.get("status", CHITIN_OK)
