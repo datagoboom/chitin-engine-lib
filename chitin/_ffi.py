@@ -101,20 +101,21 @@ class _ChitinFFI:
         lib.chitin_set_label.restype = c_int32
 
         # chitin_status_t chitin_explain(...);
+        # Use c_void_p for output pointer so .value gives raw address (not Python bytes)
         lib.chitin_explain.argtypes = [
             c_void_p,
             c_uint64,
-            POINTER(c_char_p),
+            POINTER(c_void_p),
             POINTER(c_size_t),
         ]
         lib.chitin_explain.restype = c_int32
 
         # chitin_status_t chitin_last_error(char** out_json, size_t* out_json_len);
-        lib.chitin_last_error.argtypes = [POINTER(c_char_p), POINTER(c_size_t)]
+        lib.chitin_last_error.argtypes = [POINTER(c_void_p), POINTER(c_size_t)]
         lib.chitin_last_error.restype = c_int32
 
         # void chitin_free_string(char* ptr, size_t len);
-        lib.chitin_free_string.argtypes = [c_char_p, c_size_t]
+        lib.chitin_free_string.argtypes = [c_void_p, c_size_t]
         lib.chitin_free_string.restype = None
 
         # chitin_status_t chitin_register_tool(...);
@@ -127,17 +128,21 @@ class _ChitinFFI:
         ]
         lib.chitin_register_tool.restype = c_int32
 
+        # chitin_status_t chitin_load_policies_yaml(engine, yaml, yaml_len);
+        lib.chitin_load_policies_yaml.argtypes = [c_void_p, c_char_p, c_size_t]
+        lib.chitin_load_policies_yaml.restype = c_int32
+
     def _last_error(self) -> str:
-        out_json = c_char_p()
+        out_ptr = c_void_p()
         out_len = c_size_t(0)
-        st = self._lib.chitin_last_error(ctypes.byref(out_json), ctypes.byref(out_len))
-        if st == CHITIN_ERR_NOT_FOUND or out_json.value is None:
+        st = self._lib.chitin_last_error(ctypes.byref(out_ptr), ctypes.byref(out_len))
+        if st == CHITIN_ERR_NOT_FOUND or not out_ptr.value:
             return "unknown error"
         try:
-            raw = ctypes.string_at(out_json.value, out_len.value)
+            raw = ctypes.string_at(out_ptr.value, out_len.value)
             return raw.decode("utf-8")
         finally:
-            self._lib.chitin_free_string(out_json.value, out_len.value)
+            self._lib.chitin_free_string(out_ptr.value, out_len.value)
 
     def engine_new(self, config_path: str | None) -> c_void_p:
         path_buf, path_len = _to_buf(config_path)
@@ -273,23 +278,23 @@ class _ChitinFFI:
             raise ChitinError(st, self._last_error())
 
     def explain(self, engine: c_void_p, event_id: int) -> ExplainResult:
-        out_json = c_char_p()
+        out_ptr = c_void_p()
         out_len = c_size_t(0)
         st = self._lib.chitin_explain(
             engine,
             c_uint64(event_id),
-            ctypes.byref(out_json),
+            ctypes.byref(out_ptr),
             ctypes.byref(out_len),
         )
         if st != CHITIN_OK:
             raise ChitinError(st, self._last_error())
-        if out_json.value is None or out_len.value == 0:
+        if not out_ptr.value or out_len.value == 0:
             return ExplainResult(text="", trace_chain=[])
         try:
-            raw = ctypes.string_at(out_json.value, out_len.value)
+            raw = ctypes.string_at(out_ptr.value, out_len.value)
             text = raw.decode("utf-8")
         finally:
-            self._lib.chitin_free_string(out_json.value, out_len.value)
+            self._lib.chitin_free_string(out_ptr.value, out_len.value)
         import json
         try:
             obj = json.loads(text)
@@ -299,6 +304,12 @@ class _ChitinFFI:
             )
         except Exception:
             return ExplainResult(text=text, trace_chain=[])
+
+    def load_policies_yaml(self, engine: c_void_p, yaml_str: str) -> None:
+        yaml_buf, yaml_len = _to_buf(yaml_str)
+        st = self._lib.chitin_load_policies_yaml(engine, yaml_buf, yaml_len)
+        if st != CHITIN_OK:
+            raise ChitinError(st, self._last_error())
 
     def register_tool(
         self,

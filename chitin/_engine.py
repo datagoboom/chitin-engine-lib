@@ -111,6 +111,14 @@ class Engine:
             return self._ffi.explain(self._handle, event_id)
         return self._http.explain(event_id)
 
+    def load_policies_yaml(self, yaml_str: str) -> None:
+        """Load additional policies from a YAML string. Appends to existing policies."""
+        self._ensure_open()
+        if self._backend == "ffi":
+            self._ffi.load_policies_yaml(self._handle, yaml_str)
+        else:
+            self._http.load_policies_yaml(yaml_str)
+
     def register_tool(
         self,
         name: str,

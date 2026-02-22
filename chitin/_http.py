@@ -125,6 +125,9 @@ class _ChitinHTTP:
             trace_chain=out.get("trace_chain") or [],
         )
 
+    def load_policies_yaml(self, yaml_str: str) -> None:
+        self._post("/load_policies_yaml", {"yaml": yaml_str})
+
     def register_tool(
         self,
         name: str,
